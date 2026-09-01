@@ -330,7 +330,7 @@ footer a{color:var(--accent)}
   </p>
 </footer>
 
-<script src="mishnayot.js"></script>
+<script src="mishnayot.js?v=e497d4af"></script>
 <script>
 (function(){
 "use strict";
@@ -659,8 +659,12 @@ elNTier.onchange = elNStand.onchange = function(){
   runName();
 };
 
-/* רשימת מילות ההמשך נגזרת מקובץ הנתונים — מקור יחיד משותף עם build_html.py */
-var CW = (window.MF_CONT_WORDS || []).map(function(w){ return "&rlm;" + esc(w); }).join(", ");
+/* רשימת מילות ההמשך נגזרת מקובץ הנתונים — מקור יחיד משותף עם build_html.py.
+   אם היא חסרה, mishnayot.js שנטען ישן מזה שה-HTML מצפה לו (קאש). אומרים
+   את זה במפורש במקום להציג משפט קטוע. */
+var CW = (window.MF_CONT_WORDS || []).length
+  ? window.MF_CONT_WORDS.map(function(w){ return "&rlm;" + esc(w); }).join(", ")
+  : '<span style="color:#b06a44">רשימת המילים לא נטענה — רענן את הדף (Ctrl+F5)</span>';
 document.getElementById("n-words").innerHTML = CW;
 document.getElementById("f-words").innerHTML = CW;
 
