@@ -110,6 +110,30 @@ mark{background:var(--mark); color:inherit; border-radius:2px}
 .check{display:inline-flex; align-items:center; gap:6px; font-size:.88rem; color:var(--dim); cursor:pointer}
 .check input{width:auto; margin:0}
 
+.smart{
+  appearance:none; font:inherit; font-size:1rem; cursor:pointer; width:100%;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  padding:12px 18px; border-radius:9px; margin-bottom:4px;
+  border:1px solid var(--line); background:var(--bg); color:var(--dim);
+  transition:background .12s, color .12s, border-color .12s;
+}
+.smart:hover{border-color:var(--accent); color:var(--ink)}
+.smart[aria-pressed=true]{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.smart .dot{
+  width:9px; height:9px; border-radius:50%; background:var(--line); flex:none;
+}
+.smart[aria-pressed=true] .dot{background:#fff}
+.smart .st{font-size:.78rem; font-family:system-ui,sans-serif; opacity:.75}
+details.tune{margin-top:10px}
+details.tune > summary{
+  cursor:pointer; font-size:.82rem; color:var(--dim); list-style:none;
+  font-family:system-ui,sans-serif; padding:2px 0;
+}
+details.tune > summary::-webkit-details-marker{display:none}
+details.tune > summary::before{content:"⌄ "; }
+details.tune[open] > summary::before{content:"⌃ "; }
+details.tune > summary:hover{color:var(--accent)}
+
 .group{margin:0 0 10px; padding-top:14px; border-top:2px solid var(--line)}
 .group:first-child{border-top:0; padding-top:0}
 .group h2{font-size:1.15rem; margin:0 0 3px}
@@ -174,19 +198,29 @@ footer a{color:var(--accent)}
           <input type="number" id="n-limit" value="5" min="1" max="50">
         </div>
       </div>
-      <div class="row" style="margin-top:14px">
-        <div class="field" style="flex:1 1 260px">
-          <label for="n-tier">התאמה ללימוד</label>
-          <select id="n-tier">
-            <option value="2" selected>מוסר ומסכתות מתאימות בלבד</option>
-            <option value="3">ללא מסכתות רגישות</option>
-            <option value="">הכל, בלי סינון תוכן</option>
-          </select>
-        </div>
-        <div class="field" style="flex:1 1 auto">
-          <label class="check"><input type="checkbox" id="n-standalone" checked>
-            רק משניות שעומדות בפני עצמן</label>
-        </div>
+      <div style="margin-top:16px">
+        <button class="smart" id="n-smart" aria-pressed="true">
+          <span class="dot"></span>
+          <span>בחירת תוכן חכמה</span>
+          <span class="st" id="n-smart-st"></span>
+        </button>
+        <details class="tune">
+          <summary>כוונון ידני</summary>
+          <div class="row" style="margin-top:12px">
+            <div class="field" style="flex:1 1 260px">
+              <label for="n-tier">התאמה ללימוד</label>
+              <select id="n-tier">
+                <option value="2" selected>מוסר ומסכתות מתאימות בלבד</option>
+                <option value="3">ללא מסכתות רגישות</option>
+                <option value="">הכל, בלי סינון תוכן</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1 1 auto">
+              <label class="check"><input type="checkbox" id="n-standalone" checked>
+                רק משניות שעומדות בפני עצמן</label>
+            </div>
+          </div>
+        </details>
       </div>
       <p class="hint">
         <label class="check"><input type="checkbox" id="n-neshama">
@@ -236,19 +270,29 @@ footer a{color:var(--accent)}
           </select>
         </div>
       </div>
-      <div class="row" style="margin-top:16px">
-        <div class="field" style="flex:1 1 260px">
-          <label for="f-tier">התאמה ללימוד</label>
-          <select id="f-tier">
-            <option value="" selected>הכל, בלי סינון תוכן</option>
-            <option value="3">ללא מסכתות רגישות</option>
-            <option value="2">מוסר ומסכתות מתאימות בלבד</option>
-          </select>
-        </div>
-        <div class="field" style="flex:1 1 auto">
-          <label class="check"><input type="checkbox" id="f-standalone">
-            רק משניות שעומדות בפני עצמן</label>
-        </div>
+      <div style="margin-top:16px">
+        <button class="smart" id="f-smart" aria-pressed="false">
+          <span class="dot"></span>
+          <span>בחירת תוכן חכמה</span>
+          <span class="st" id="f-smart-st"></span>
+        </button>
+        <details class="tune">
+          <summary>כוונון ידני</summary>
+          <div class="row" style="margin-top:12px">
+            <div class="field" style="flex:1 1 260px">
+              <label for="f-tier">התאמה ללימוד</label>
+              <select id="f-tier">
+                <option value="" selected>הכל, בלי סינון תוכן</option>
+                <option value="3">ללא מסכתות רגישות</option>
+                <option value="2">מוסר ומסכתות מתאימות בלבד</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1 1 auto">
+              <label class="check"><input type="checkbox" id="f-standalone">
+                רק משניות שעומדות בפני עצמן</label>
+            </div>
+          </div>
+        </details>
       </div>
       <div class="field" style="margin-top:16px">
         <label for="f-text">חיפוש בטקסט</label>
@@ -377,6 +421,10 @@ function byLen(a,b){
 function byOrder(a,b){
   return a[L_TR] - b[L_TR] || a[L_PEREK] - b[L_PEREK] || a[L_MISHNA] - b[L_MISHNA];
 }
+/* במצב החכם: רמת התאמה קודמת לאורך, כדי שמשניות מוסר יעלו למעלה */
+function bySmart(a,b){
+  return T[a[L_TR]][TR_TIER] - T[b[L_TR]][TR_TIER] || byLen(a,b);
+}
 
 function query(opts){
   var out = [];
@@ -391,7 +439,7 @@ function query(opts){
     if(opts.needle && PLAIN[i].indexOf(opts.needle) === -1) continue;
     out.push(r);
   }
-  out.sort(opts.sort === "order" ? byOrder : byLen);
+  out.sort(opts.sort === "order" ? byOrder : (opts.sort === "smart" ? bySmart : byLen));
   return out;
 }
 
@@ -480,21 +528,45 @@ paintRange();
 
 var timer;
 elText.oninput = function(){ clearTimeout(timer); timer = setTimeout(runBrowse, 140); };
-elTract.onchange = elSort.onchange = elTier.onchange = elStand.onchange = runBrowse;
+elTract.onchange = elSort.onchange = runBrowse;
+
+/* ─── "בחירת תוכן חכמה": כפתור אחד שמפעיל את שכבות הסינון ─── */
+var elSmart = document.getElementById("f-smart");
+var elSmartSt = document.getElementById("f-smart-st");
+
+function applySmart(on){
+  elTier.value = on ? "2" : "";
+  elStand.checked = on;
+  elSmart.setAttribute("aria-pressed", on);
+  runBrowse();
+}
+elSmart.onclick = function(){ applySmart(elSmart.getAttribute("aria-pressed") !== "true"); };
+/* שינוי ידני מכבה את המצב החכם אם הוא כבר לא תואם */
+elTier.onchange = elStand.onchange = function(){
+  var on = elTier.value === "2" && elStand.checked;
+  elSmart.setAttribute("aria-pressed", on);
+  runBrowse();
+};
 
 function runBrowse(){
   var needle = strip(elText.value.trim());
-  var filtered = elTier.value !== "" || elStand.checked;
+  var smart = elSmart.getAttribute("aria-pressed") === "true";
   var rows = query({
     letter: activeLetter,
     minW: +elWMin.value, maxW: +elWMax.value,
     tr: elTract.value === "" ? null : +elTract.value,
     maxTier: elTier.value === "" ? 0 : +elTier.value,
     standalone: elStand.checked,
-    needle: needle, sort: elSort.value
+    needle: needle,
+    sort: (smart && elSort.value === "len") ? "smart" : elSort.value
   });
-  elCount.innerHTML = "נמצאו <b>" + rows.length + "</b> משניות מתוך " + M.length
-    + (filtered ? " &middot; סינון תוכן פעיל" : "");
+  var total = query({
+    letter: activeLetter, minW: +elWMin.value, maxW: +elWMax.value,
+    tr: elTract.value === "" ? null : +elTract.value, needle: needle, sort: "len"
+  }).length;
+  elSmartSt.textContent = smart ? ("סוננו " + (total - rows.length)) : "כבוי";
+  elCount.innerHTML = "נמצאו <b>" + rows.length + "</b> משניות"
+    + (smart ? " מתוך " + total + " &middot; בחירת תוכן חכמה פעילה" : " מתוך " + M.length);
   renderList(browseHost, rows, needle);
 }
 
@@ -520,25 +592,29 @@ function runName(){
     return;
   }
   var maxW = +elNMax.value || 0, limit = +elNLimit.value || 5;
+  var smart = elNSmart.getAttribute("aria-pressed") === "true";
   var opts = {
-    maxW: maxW, sort: "len",
+    maxW: maxW, sort: smart ? "smart" : "len",
     maxTier: elNTier.value === "" ? 0 : +elNTier.value,
     standalone: elNStand.checked
   };
+  var dropped = 0;
   nameHost.innerHTML = letters.map(function(c, idx){
     opts.letter = c;
     var rows = query(opts);
     var total = rows.length;
+    var noFilter = query({ letter: c, maxW: maxW, sort: "len" }).length;
+    dropped += noFilter - total;
     rows = rows.slice(0, limit);
     var note;
     if(total){
-      note = "מוצגות " + rows.length + " מתוך " + total + " משניות עד " + maxW + " מילים";
+      note = "מוצגות " + rows.length + " מתוך " + total + " משניות עד " + maxW + " מילים"
+           + (noFilter > total ? " &middot; " + (noFilter - total) + " סוננו" : "");
     } else {
       /* מה חסם — האורך או סינון התוכן? */
-      var noFilter = query({ letter: c, maxW: maxW, sort: "len" }).length;
       note = noFilter
         ? ("אין משנה שעוברת את סינון התוכן באות זו. יש " + noFilter
-           + " בלי הסינון — הרחב את אורך מירבי או הרפה את ההתאמה.")
+           + " בלי הסינון — הרחב את אורך מירבי או כבה את הבחירה החכמה.")
         : ("אין משנה עד " + maxW + " מילים הפותחת באות זו — הגדל את אורך מירבי.");
     }
     return '<section class="group">'
@@ -547,12 +623,29 @@ function runName(){
       + rows.map(function(r){ return card(r, ""); }).join("")
       + '</section>';
   }).join("");
+  elNSmartSt.textContent = smart ? ("סוננו " + dropped) : "כבוי";
 }
 
 var ntimer;
 elName.oninput = function(){ clearTimeout(ntimer); ntimer = setTimeout(runName, 160); };
 elNMax.onchange = elNLimit.onchange = runName;
-elNesh.onchange = elNTier.onchange = elNStand.onchange = runName;
+elNesh.onchange = runName;
+
+var elNSmart = document.getElementById("n-smart");
+var elNSmartSt = document.getElementById("n-smart-st");
+function applyNameSmart(on){
+  elNTier.value = on ? "2" : "";
+  elNStand.checked = on;
+  elNSmart.setAttribute("aria-pressed", on);
+  runName();
+}
+elNSmart.onclick = function(){
+  applyNameSmart(elNSmart.getAttribute("aria-pressed") !== "true");
+};
+elNTier.onchange = elNStand.onchange = function(){
+  elNSmart.setAttribute("aria-pressed", elNTier.value === "2" && elNStand.checked);
+  runName();
+};
 
 runBrowse();
 runName();
