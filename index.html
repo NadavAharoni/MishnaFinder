@@ -98,6 +98,18 @@ input[type=number]{width:5.5em; text-align:center}
 .txt{margin:0; font-size:1.08rem; line-height:1.9}
 mark{background:var(--mark); color:inherit; border-radius:2px}
 
+.tag{
+  font-family:system-ui,sans-serif; font-size:.68rem; padding:1px 7px; border-radius:20px;
+  border:1px solid var(--line); color:var(--dim); white-space:nowrap;
+}
+.tag.t1{background:var(--accent-soft); border-color:var(--accent-soft); color:var(--accent)}
+.tag.t4{border-color:#c98b6b; color:#b06a44}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]) .tag.t4{border-color:#8a5a3d; color:#d99a72}
+}
+.check{display:inline-flex; align-items:center; gap:6px; font-size:.88rem; color:var(--dim); cursor:pointer}
+.check input{width:auto; margin:0}
+
 .group{margin:0 0 10px; padding-top:14px; border-top:2px solid var(--line)}
 .group:first-child{border-top:0; padding-top:0}
 .group h2{font-size:1.15rem; margin:0 0 3px}
@@ -155,19 +167,38 @@ footer a{color:var(--accent)}
         </div>
         <div class="field" style="flex:0 1 auto">
           <span class="flabel">אורך מירבי</span>
-          <input type="number" id="n-max" value="26" min="1" max="400">
+          <input type="number" id="n-max" value="60" min="1" max="400">
         </div>
         <div class="field" style="flex:0 1 auto">
           <span class="flabel">מועמדות לאות</span>
           <input type="number" id="n-limit" value="5" min="1" max="50">
         </div>
       </div>
+      <div class="row" style="margin-top:14px">
+        <div class="field" style="flex:1 1 260px">
+          <label for="n-tier">התאמה ללימוד</label>
+          <select id="n-tier">
+            <option value="2" selected>מוסר ומסכתות מתאימות בלבד</option>
+            <option value="3">ללא מסכתות רגישות</option>
+            <option value="">הכל, בלי סינון תוכן</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1 1 auto">
+          <label class="check"><input type="checkbox" id="n-standalone" checked>
+            רק משניות שעומדות בפני עצמן</label>
+        </div>
+      </div>
       <p class="hint">
-        <label><input type="checkbox" id="n-neshama"> להוסיף בסוף את אותיות <b>נ־ש־מ־ה</b></label>
+        <label class="check"><input type="checkbox" id="n-neshama">
+          להוסיף בסוף את אותיות <b>נ־ש־מ־ה</b></label>
       </p>
       <p class="hint">
         אות שמופיעה פעמיים בשם מקבלת שתי משבצות נפרדות, כדי שאפשר יהיה לבחור משנה
         אחרת לכל אחת. אותיות סופיות מומרות לרגילות.
+        <br>
+        ברירת המחדל מגבילה לאבות, ברכות, מועדים ומקדש — ובאורך רחב יחסית, כי משנה
+        ארוכה מעט ממסכת מתאימה עדיפה על משנה קצרה ממסכת טכנית. לאותיות ד&#39; וצ&#39;
+        יש מעט מאוד מועמדות בכל מקרה.
       </p>
     </div>
     <div id="name-results"></div>
@@ -205,7 +236,21 @@ footer a{color:var(--accent)}
           </select>
         </div>
       </div>
-      <div class="field">
+      <div class="row" style="margin-top:16px">
+        <div class="field" style="flex:1 1 260px">
+          <label for="f-tier">התאמה ללימוד</label>
+          <select id="f-tier">
+            <option value="" selected>הכל, בלי סינון תוכן</option>
+            <option value="3">ללא מסכתות רגישות</option>
+            <option value="2">מוסר ומסכתות מתאימות בלבד</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1 1 auto">
+          <label class="check"><input type="checkbox" id="f-standalone">
+            רק משניות שעומדות בפני עצמן</label>
+        </div>
+      </div>
+      <div class="field" style="margin-top:16px">
         <label for="f-text">חיפוש בטקסט</label>
         <input type="text" id="f-text" placeholder="מילה או ביטוי — הניקוד מתעלם" autocomplete="off">
       </div>
@@ -234,8 +279,10 @@ footer a{color:var(--accent)}
 (function(){
 "use strict";
 var T = window.MF_TRACTATES, M = window.MF_MISHNAYOT;
-var L_LETTER=0, L_TR=1, L_PEREK=2, L_MISHNA=3, L_WORDS=4, L_TEXT=5;
-var TR_HE=0, TR_EN=1, TR_SEDER=2, TR_ID=3;
+var L_LETTER=0, L_TR=1, L_PEREK=2, L_MISHNA=3, L_WORDS=4, L_FLAGS=5, L_TEXT=6;
+var TR_HE=0, TR_EN=1, TR_SEDER=2, TR_ID=3, TR_TIER=4;
+var FLAG_CONT=1, FLAG_MEASURE=2;
+var TIER_NAME = {1:"מוסר ואגדה", 2:"מתאים", 3:"הלכתי", 4:"רגיש"};
 
 var NIKUD = /[֑-ׇ]/g;
 var NIKUD1 = /[֑-ׇ]/;
@@ -285,11 +332,16 @@ function highlight(text, needle){
 }
 
 function card(row, needle){
-  var t = T[row[L_TR]];
+  var t = T[row[L_TR]], tags = "";
+  if(t[TR_TIER] === 1) tags += '<span class="tag t1">מוסר</span>';
+  if(t[TR_TIER] === 4) tags += '<span class="tag t4">מסכת רגישה</span>';
+  if(row[L_FLAGS] & FLAG_CONT) tags += '<span class="tag">המשך הקודמת</span>';
+  if(row[L_FLAGS] & FLAG_MEASURE) tags += '<span class="tag">מידות</span>';
   return '<article class="m">'
     + '<div class="m-head">'
     +   '<span class="ref">' + esc(ref(row)) + '</span>'
     +   '<span class="meta">' + esc(t[TR_SEDER]) + ' &middot; ' + row[L_WORDS] + ' מילים</span>'
+    +   tags
     +   '<a href="' + sefariaUrl(row) + '" target="_blank" rel="noopener">ספריא &#8599;</a>'
     + '</div>'
     + '<p class="txt">' + highlight(row[L_TEXT], needle) + '</p>'
@@ -334,6 +386,8 @@ function query(opts){
     if(opts.minW && r[L_WORDS] < opts.minW) continue;
     if(opts.maxW && r[L_WORDS] > opts.maxW) continue;
     if(opts.tr != null && r[L_TR] !== opts.tr) continue;
+    if(opts.maxTier && T[r[L_TR]][TR_TIER] > opts.maxTier) continue;
+    if(opts.standalone && (r[L_FLAGS] & FLAG_CONT)) continue;
     if(opts.needle && PLAIN[i].indexOf(opts.needle) === -1) continue;
     out.push(r);
   }
@@ -362,6 +416,8 @@ var elFill = document.getElementById("w-fill");
 var elTract = document.getElementById("f-tractate");
 var elSort = document.getElementById("f-sort");
 var elText = document.getElementById("f-text");
+var elTier = document.getElementById("f-tier");
+var elStand = document.getElementById("f-standalone");
 var elCount = document.getElementById("count");
 var browseHost = document.getElementById("browse-results");
 var activeLetter = "";
@@ -424,17 +480,21 @@ paintRange();
 
 var timer;
 elText.oninput = function(){ clearTimeout(timer); timer = setTimeout(runBrowse, 140); };
-elTract.onchange = elSort.onchange = runBrowse;
+elTract.onchange = elSort.onchange = elTier.onchange = elStand.onchange = runBrowse;
 
 function runBrowse(){
   var needle = strip(elText.value.trim());
+  var filtered = elTier.value !== "" || elStand.checked;
   var rows = query({
     letter: activeLetter,
     minW: +elWMin.value, maxW: +elWMax.value,
     tr: elTract.value === "" ? null : +elTract.value,
+    maxTier: elTier.value === "" ? 0 : +elTier.value,
+    standalone: elStand.checked,
     needle: needle, sort: elSort.value
   });
-  elCount.innerHTML = "נמצאו <b>" + rows.length + "</b> משניות מתוך " + M.length;
+  elCount.innerHTML = "נמצאו <b>" + rows.length + "</b> משניות מתוך " + M.length
+    + (filtered ? " &middot; סינון תוכן פעיל" : "");
   renderList(browseHost, rows, needle);
 }
 
@@ -442,6 +502,8 @@ var elName = document.getElementById("n-name");
 var elNMax = document.getElementById("n-max");
 var elNLimit = document.getElementById("n-limit");
 var elNesh = document.getElementById("n-neshama");
+var elNTier = document.getElementById("n-tier");
+var elNStand = document.getElementById("n-standalone");
 var nameHost = document.getElementById("name-results");
 
 function nameLetters(){
@@ -458,13 +520,27 @@ function runName(){
     return;
   }
   var maxW = +elNMax.value || 0, limit = +elNLimit.value || 5;
+  var opts = {
+    maxW: maxW, sort: "len",
+    maxTier: elNTier.value === "" ? 0 : +elNTier.value,
+    standalone: elNStand.checked
+  };
   nameHost.innerHTML = letters.map(function(c, idx){
-    var rows = query({ letter: c, maxW: maxW, sort: "len" });
+    opts.letter = c;
+    var rows = query(opts);
     var total = rows.length;
     rows = rows.slice(0, limit);
-    var note = total
-      ? ("מוצגות " + rows.length + " מתוך " + total + " משניות עד " + maxW + " מילים")
-      : ("אין משנה עד " + maxW + " מילים הפותחת באות זו — נסה להגדיל את אורך מירבי");
+    var note;
+    if(total){
+      note = "מוצגות " + rows.length + " מתוך " + total + " משניות עד " + maxW + " מילים";
+    } else {
+      /* מה חסם — האורך או סינון התוכן? */
+      var noFilter = query({ letter: c, maxW: maxW, sort: "len" }).length;
+      note = noFilter
+        ? ("אין משנה שעוברת את סינון התוכן באות זו. יש " + noFilter
+           + " בלי הסינון — הרחב את אורך מירבי או הרפה את ההתאמה.")
+        : ("אין משנה עד " + maxW + " מילים הפותחת באות זו — הגדל את אורך מירבי.");
+    }
     return '<section class="group">'
       + '<h2><span class="badge">' + c + '</span>משבצת ' + (idx + 1) + '</h2>'
       + '<p class="note">' + note + '</p>'
@@ -476,7 +552,7 @@ function runName(){
 var ntimer;
 elName.oninput = function(){ clearTimeout(ntimer); ntimer = setTimeout(runName, 160); };
 elNMax.onchange = elNLimit.onchange = runName;
-elNesh.onchange = runName;
+elNesh.onchange = elNTier.onchange = elNStand.onchange = runName;
 
 runBrowse();
 runName();
