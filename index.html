@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>משניות לפי אותיות</title>
+<meta name="description" content="חיפוש משניות לפי האות שבה הן פותחות, אורך ומסכת — לבחירת משניות ללימוד לעילוי נשמה.">
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --ink:#1c1a17; --dim:#6b645c; --line:#e2dcd2;
+  --accent:#7a5c2e; --accent-soft:#f0e7d8; --mark:#fdf2c8;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    --bg:#16150f; --panel:#1f1e18; --ink:#ece7dd; --dim:#9d968a; --line:#332f27;
+    --accent:#d3ae72; --accent-soft:#2b2519; --mark:#4a3f18;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Frank Ruhl Libre","Times New Roman",Georgia,serif;
+  font-size:17px; line-height:1.65;
+}
+header{padding:26px 20px 0; max-width:1000px; margin:0 auto}
+h1{font-size:1.75rem; margin:0 0 4px; letter-spacing:-.01em}
+.sub{color:var(--dim); margin:0 0 18px; font-size:.95rem; max-width:60ch}
+main{max-width:1000px; margin:0 auto; padding:0 20px 60px}
+
+.tabs{display:flex; gap:4px; border-bottom:2px solid var(--line); margin-bottom:20px}
+.tab{
+  appearance:none; border:0; background:none; font:inherit; color:var(--dim);
+  padding:9px 18px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px;
+}
+.tab[aria-selected=true]{color:var(--accent); border-bottom-color:var(--accent); font-weight:600}
+.tab:hover{color:var(--ink)}
+
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:22px}
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field > label, .flabel{display:block; font-size:.82rem; color:var(--dim); margin-bottom:7px; font-weight:600; letter-spacing:.02em}
+.row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end}
+.row > .field{flex:1 1 190px; margin-bottom:0}
+
+input[type=text], input[type=number], select{
+  font:inherit; font-size:.95rem; padding:7px 10px; border:1px solid var(--line);
+  border-radius:7px; background:var(--bg); color:var(--ink); width:100%;
+}
+input:focus, select:focus, .tab:focus-visible, .lt:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+input[type=number]{width:5.5em; text-align:center}
+
+.letters{display:flex; flex-wrap:wrap; gap:5px}
+.lt{
+  appearance:none; font:inherit; cursor:pointer; background:var(--bg); color:var(--ink);
+  border:1px solid var(--line); border-radius:7px; padding:5px 9px; min-width:44px;
+  font-size:1.05rem; line-height:1.2; text-align:center;
+}
+.lt small{display:block; font-size:.62rem; color:var(--dim); font-family:system-ui,sans-serif}
+.lt:hover{border-color:var(--accent)}
+.lt[aria-pressed=true]{background:var(--accent); border-color:var(--accent); color:#fff}
+.lt[aria-pressed=true] small{color:rgba(255,255,255,.8)}
+.lt:disabled{opacity:.32; cursor:default}
+.lt:disabled:hover{border-color:var(--line)}
+
+.range{position:relative; height:30px; margin:2px 4px 0}
+.range .track{position:absolute; inset:13px 0 auto; height:4px; background:var(--line); border-radius:2px}
+.range .fill{position:absolute; top:13px; height:4px; background:var(--accent); border-radius:2px}
+.range input{
+  position:absolute; top:0; right:0; width:100%; height:30px; margin:0;
+  appearance:none; background:none; pointer-events:none;
+}
+.range input::-webkit-slider-thumb{
+  appearance:none; pointer-events:auto; width:18px; height:18px; border-radius:50%;
+  background:var(--panel); border:2px solid var(--accent); cursor:grab; margin-top:-7px;
+}
+.range input::-moz-range-thumb{
+  pointer-events:auto; width:16px; height:16px; border-radius:50%;
+  background:var(--panel); border:2px solid var(--accent); cursor:grab;
+}
+.range input::-webkit-slider-runnable-track{height:4px; background:none}
+.range input::-moz-range-track{height:4px; background:none}
+
+.wordbox{display:flex; align-items:center; gap:8px}
+.wordbox span{color:var(--dim); font-size:.9rem}
+
+.count{color:var(--dim); font-size:.9rem; margin:0 0 14px}
+.count b{color:var(--ink)}
+.m{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:15px 17px; margin-bottom:11px;
+}
+.m-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:7px}
+.ref{font-weight:700; color:var(--accent); font-size:1.02rem}
+.meta{color:var(--dim); font-size:.8rem; font-family:system-ui,sans-serif}
+.m-head a{margin-inline-start:auto; color:var(--dim); font-size:.78rem; text-decoration:none;
+  font-family:system-ui,sans-serif; border-bottom:1px dotted var(--line)}
+.m-head a:hover{color:var(--accent); border-bottom-color:var(--accent)}
+.txt{margin:0; font-size:1.08rem; line-height:1.9}
+mark{background:var(--mark); color:inherit; border-radius:2px}
+
+.group{margin:0 0 10px; padding-top:14px; border-top:2px solid var(--line)}
+.group:first-child{border-top:0; padding-top:0}
+.group h2{font-size:1.15rem; margin:0 0 3px}
+.group h2 .badge{
+  display:inline-block; background:var(--accent-soft); color:var(--accent);
+  border-radius:6px; padding:1px 9px; margin-inline-end:8px; font-size:1.05rem;
+}
+.group .note{color:var(--dim); font-size:.85rem; margin:0 0 12px}
+
+.empty{color:var(--dim); text-align:center; padding:44px 20px; font-size:.95rem}
+.more{
+  display:block; width:100%; font:inherit; cursor:pointer; padding:11px;
+  background:var(--panel); border:1px dashed var(--line); border-radius:9px; color:var(--accent);
+}
+.more:hover{border-color:var(--accent)}
+.hint{color:var(--dim); font-size:.85rem; margin:6px 0 0}
+
+footer{
+  max-width:1000px; margin:0 auto; padding:26px 20px 50px; border-top:1px solid var(--line);
+  color:var(--dim); font-size:.85rem; line-height:1.75;
+}
+footer a{color:var(--accent)}
+[hidden]{display:none !important}
+
+@media print{
+  .tabs,.panel,.more,footer,.m-head a{display:none !important}
+  body{background:#fff; color:#000; font-size:12pt}
+  .m{border:0; border-bottom:1px solid #ccc; border-radius:0; padding:8px 0; break-inside:avoid}
+  header{padding-bottom:8px}
+  .sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>משניות לפי אותיות</h1>
+  <p class="sub">
+    חיפוש בכל 4,192 המשניות לפי האות שבה הן פותחות, אורך, מסכת וטקסט חופשי —
+    לבחירת משניות ללימוד לעילוי נשמה.
+  </p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-name" aria-selected="true">לפי שם</button>
+    <button class="tab" role="tab" id="tab-browse" aria-selected="false">חיפוש חופשי</button>
+  </div>
+</header>
+
+<main>
+  <section id="pane-name">
+    <div class="panel">
+      <div class="row">
+        <div class="field" style="flex:2 1 240px">
+          <label for="n-name">שם הנפטר</label>
+          <input type="text" id="n-name" placeholder="למשל: ירמיהו" autocomplete="off">
+        </div>
+        <div class="field" style="flex:0 1 auto">
+          <span class="flabel">אורך מירבי</span>
+          <input type="number" id="n-max" value="26" min="1" max="400">
+        </div>
+        <div class="field" style="flex:0 1 auto">
+          <span class="flabel">מועמדות לאות</span>
+          <input type="number" id="n-limit" value="5" min="1" max="50">
+        </div>
+      </div>
+      <p class="hint">
+        <label><input type="checkbox" id="n-neshama"> להוסיף בסוף את אותיות <b>נ־ש־מ־ה</b></label>
+      </p>
+      <p class="hint">
+        אות שמופיעה פעמיים בשם מקבלת שתי משבצות נפרדות, כדי שאפשר יהיה לבחור משנה
+        אחרת לכל אחת. אותיות סופיות מומרות לרגילות.
+      </p>
+    </div>
+    <div id="name-results"></div>
+  </section>
+
+  <section id="pane-browse" hidden>
+    <div class="panel">
+      <div class="field">
+        <span class="flabel">אות פותחת</span>
+        <div class="letters" id="letters"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <span class="flabel">אורך במילים</span>
+          <div class="wordbox">
+            <input type="number" id="w-min" min="1" max="400">
+            <span>עד</span>
+            <input type="number" id="w-max" min="1" max="400">
+          </div>
+          <div class="range" id="w-range">
+            <div class="track"></div><div class="fill" id="w-fill"></div>
+            <input type="range" id="w-r1" min="1" max="400">
+            <input type="range" id="w-r2" min="1" max="400">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-tractate">מסכת</label>
+          <select id="f-tractate"></select>
+        </div>
+        <div class="field">
+          <label for="f-sort">מיון</label>
+          <select id="f-sort">
+            <option value="len">לפי אורך</option>
+            <option value="order">לפי סדר הש"ס</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-text">חיפוש בטקסט</label>
+        <input type="text" id="f-text" placeholder="מילה או ביטוי — הניקוד מתעלם" autocomplete="off">
+      </div>
+    </div>
+    <p class="count" id="count"></p>
+    <div id="browse-results"></div>
+  </section>
+</main>
+
+<footer>
+  <p>
+    טקסט המשנה המנוקד מ<a href="https://www.sefaria.org" target="_blank" rel="noopener">ספריא</a> —
+    נוסח <a href="http://www.toratemetfreeware.com" target="_blank" rel="noopener">תורת אמת</a>
+    (נחלת הכלל), בהשלמה מנוסח הספרייה הלאומית בביכורים ד&#39;.
+    לכל משנה יש קישור לספריא, שם יש פרשנות והקשר.
+  </p>
+  <p>
+    הכלי מסייע <b>למצוא</b> משניות; הבחירה מה מתאים ללימוד היא שלך.
+    הרשימות המקובלות ללימוד לעילוי נשמה מבוססות על <b>פרקים שלמים</b>, לא על משניות
+    בודדות שנבחרו לפי אורך — כדאי להתייעץ עם רב.
+  </p>
+</footer>
+
+<script src="mishnayot.js"></script>
+<script>
+(function(){
+"use strict";
+var T = window.MF_TRACTATES, M = window.MF_MISHNAYOT;
+var L_LETTER=0, L_TR=1, L_PEREK=2, L_MISHNA=3, L_WORDS=4, L_TEXT=5;
+var TR_HE=0, TR_EN=1, TR_SEDER=2, TR_ID=3;
+
+var NIKUD = /[֑-ׇ]/g;
+var NIKUD1 = /[֑-ׇ]/;
+var FINALS = {"ך":"כ","ם":"מ","ן":"נ","ף":"פ","ץ":"צ"};
+var SEDER_ORDER = ["זרעים","מועד","נשים","נזיקין","קדשים","טהרות"];
+var HEBNUM = ("- א ב ג ד ה ו ז ח ט י יא יב יג יד טו טז יז יח יט כ כא כב כג כד כה כו כז כח כט "
+            + "ל לא לב לג לד לה לו לז לח לט מ").split(" ");
+
+function strip(s){ return s.replace(NIKUD, ""); }
+function normLetter(c){ return FINALS[c] || c; }
+function hebNum(n){ return HEBNUM[n] || String(n); }
+function ref(row){
+  return T[row[L_TR]][TR_HE] + " " + hebNum(row[L_PEREK]) + ":" + hebNum(row[L_MISHNA]);
+}
+function sefariaUrl(row){
+  return "https://www.sefaria.org.il/" + T[row[L_TR]][TR_ID] + "." + row[L_PEREK] + "." + row[L_MISHNA];
+}
+function esc(s){
+  return s.replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+}
+
+var PLAIN = M.map(function(r){ return strip(r[L_TEXT]); });
+
+var MAXW = M.reduce(function(a,r){ return Math.max(a, r[L_WORDS]); }, 0);
+var LETTER_COUNTS = {};
+M.forEach(function(r){ LETTER_COUNTS[r[L_LETTER]] = (LETTER_COUNTS[r[L_LETTER]] || 0) + 1; });
+var ALEFBET = "אבגדהוזחטיכלמנסעפצקרשת".split("");
+
+function highlight(text, needle){
+  if(!needle) return esc(text);
+  var plain = strip(text), hits = [], i = plain.indexOf(needle);
+  while(i !== -1){ hits.push([i, i + needle.length]); i = plain.indexOf(needle, i + needle.length); }
+  if(!hits.length) return esc(text);
+  var map = [], j;
+  for(j = 0; j < text.length; j++){ if(!NIKUD1.test(text[j])) map.push(j); }
+  map.push(text.length);
+  var out = "", prev = 0;
+  hits.forEach(function(h){
+    var a = map[h[0]], b = map[h[1]];
+    if(a === undefined || b === undefined) return;
+    out += esc(text.slice(prev, a)) + "<mark>" + esc(text.slice(a, b)) + "</mark>";
+    prev = b;
+  });
+  return out + esc(text.slice(prev));
+}
+
+function card(row, needle){
+  var t = T[row[L_TR]];
+  return '<article class="m">'
+    + '<div class="m-head">'
+    +   '<span class="ref">' + esc(ref(row)) + '</span>'
+    +   '<span class="meta">' + esc(t[TR_SEDER]) + ' &middot; ' + row[L_WORDS] + ' מילים</span>'
+    +   '<a href="' + sefariaUrl(row) + '" target="_blank" rel="noopener">ספריא &#8599;</a>'
+    + '</div>'
+    + '<p class="txt">' + highlight(row[L_TEXT], needle) + '</p>'
+    + '</article>';
+}
+
+var PAGE = 60;
+function renderList(host, rows, needle){
+  var shown = 0;
+  function draw(){
+    var slice = rows.slice(shown, shown + PAGE);
+    var html = slice.map(function(r){ return card(r, needle); }).join("");
+    var btn = host.querySelector(".more");
+    if(btn) btn.remove();
+    host.insertAdjacentHTML("beforeend", html);
+    shown += slice.length;
+    if(shown < rows.length){
+      var b = document.createElement("button");
+      b.className = "more";
+      b.textContent = "הצג עוד (" + (rows.length - shown) + " נותרו)";
+      b.onclick = draw;
+      host.appendChild(b);
+    }
+  }
+  host.innerHTML = "";
+  if(!rows.length){ host.innerHTML = '<p class="empty">אין משניות שעונות על התנאים.</p>'; return; }
+  draw();
+}
+
+function byLen(a,b){
+  return a[L_WORDS] - b[L_WORDS] || a[L_TR] - b[L_TR] || a[L_PEREK] - b[L_PEREK] || a[L_MISHNA] - b[L_MISHNA];
+}
+function byOrder(a,b){
+  return a[L_TR] - b[L_TR] || a[L_PEREK] - b[L_PEREK] || a[L_MISHNA] - b[L_MISHNA];
+}
+
+function query(opts){
+  var out = [];
+  for(var i = 0; i < M.length; i++){
+    var r = M[i];
+    if(opts.letter && r[L_LETTER] !== opts.letter) continue;
+    if(opts.minW && r[L_WORDS] < opts.minW) continue;
+    if(opts.maxW && r[L_WORDS] > opts.maxW) continue;
+    if(opts.tr != null && r[L_TR] !== opts.tr) continue;
+    if(opts.needle && PLAIN[i].indexOf(opts.needle) === -1) continue;
+    out.push(r);
+  }
+  out.sort(opts.sort === "order" ? byOrder : byLen);
+  return out;
+}
+
+var tabName = document.getElementById("tab-name");
+var tabBrowse = document.getElementById("tab-browse");
+var paneName = document.getElementById("pane-name");
+var paneBrowse = document.getElementById("pane-browse");
+function selectTab(which){
+  var isName = which === "name";
+  tabName.setAttribute("aria-selected", isName);
+  tabBrowse.setAttribute("aria-selected", !isName);
+  paneName.hidden = !isName;
+  paneBrowse.hidden = isName;
+}
+tabName.onclick = function(){ selectTab("name"); };
+tabBrowse.onclick = function(){ selectTab("browse"); };
+
+var elLetters = document.getElementById("letters");
+var elWMin = document.getElementById("w-min"), elWMax = document.getElementById("w-max");
+var elR1 = document.getElementById("w-r1"), elR2 = document.getElementById("w-r2");
+var elFill = document.getElementById("w-fill");
+var elTract = document.getElementById("f-tractate");
+var elSort = document.getElementById("f-sort");
+var elText = document.getElementById("f-text");
+var elCount = document.getElementById("count");
+var browseHost = document.getElementById("browse-results");
+var activeLetter = "";
+
+var lhtml = '<button class="lt" data-l="" aria-pressed="true">הכל<small>' + M.length + '</small></button>';
+ALEFBET.forEach(function(c){
+  var n = LETTER_COUNTS[c] || 0;
+  lhtml += '<button class="lt" data-l="' + c + '" aria-pressed="false"' + (n ? "" : " disabled") + '>'
+        + c + '<small>' + n + '</small></button>';
+});
+elLetters.innerHTML = lhtml;
+elLetters.addEventListener("click", function(e){
+  var b = e.target.closest(".lt");
+  if(!b || b.disabled) return;
+  activeLetter = b.dataset.l;
+  Array.prototype.forEach.call(elLetters.children, function(x){
+    x.setAttribute("aria-pressed", x === b);
+  });
+  runBrowse();
+});
+
+var thtml = '<option value="">כל המסכתות</option>';
+SEDER_ORDER.forEach(function(sd){
+  var items = [];
+  T.forEach(function(t, i){
+    if(t[TR_SEDER] === sd) items.push('<option value="' + i + '">' + esc(t[TR_HE]) + '</option>');
+  });
+  if(items.length) thtml += '<optgroup label="סדר ' + sd + '">' + items.join("") + '</optgroup>';
+});
+elTract.innerHTML = thtml;
+
+[elWMin, elR1].forEach(function(e){ e.min = 1; e.max = MAXW; e.value = 1; });
+[elWMax, elR2].forEach(function(e){ e.min = 1; e.max = MAXW; e.value = MAXW; });
+function paintRange(){
+  var lo = +elR1.value, hi = +elR2.value;
+  var a = (lo - 1) / (MAXW - 1) * 100, b = (hi - 1) / (MAXW - 1) * 100;
+  elFill.style.right = a + "%";
+  elFill.style.width = (b - a) + "%";
+}
+function syncFrom(src){
+  var lo = +elR1.value, hi = +elR2.value, t;
+  if(src === "range"){
+    if(lo > hi){
+      if(document.activeElement === elR1) lo = hi; else hi = lo;
+      elR1.value = lo; elR2.value = hi;
+    }
+    elWMin.value = lo; elWMax.value = hi;
+  } else {
+    lo = Math.max(1, Math.min(MAXW, +elWMin.value || 1));
+    hi = Math.max(1, Math.min(MAXW, +elWMax.value || MAXW));
+    if(lo > hi){ t = lo; lo = hi; hi = t; }
+    elWMin.value = lo; elWMax.value = hi; elR1.value = lo; elR2.value = hi;
+  }
+  paintRange();
+  runBrowse();
+}
+elR1.oninput = elR2.oninput = function(){ syncFrom("range"); };
+elWMin.onchange = elWMax.onchange = function(){ syncFrom("box"); };
+paintRange();
+
+var timer;
+elText.oninput = function(){ clearTimeout(timer); timer = setTimeout(runBrowse, 140); };
+elTract.onchange = elSort.onchange = runBrowse;
+
+function runBrowse(){
+  var needle = strip(elText.value.trim());
+  var rows = query({
+    letter: activeLetter,
+    minW: +elWMin.value, maxW: +elWMax.value,
+    tr: elTract.value === "" ? null : +elTract.value,
+    needle: needle, sort: elSort.value
+  });
+  elCount.innerHTML = "נמצאו <b>" + rows.length + "</b> משניות מתוך " + M.length;
+  renderList(browseHost, rows, needle);
+}
+
+var elName = document.getElementById("n-name");
+var elNMax = document.getElementById("n-max");
+var elNLimit = document.getElementById("n-limit");
+var elNesh = document.getElementById("n-neshama");
+var nameHost = document.getElementById("name-results");
+
+function nameLetters(){
+  var raw = strip(elName.value).replace(/[^א-ת]/g, "");
+  var out = raw.split("").map(normLetter);
+  if(elNesh.checked) out = out.concat(["נ","ש","מ","ה"]);
+  return out;
+}
+
+function runName(){
+  var letters = nameLetters();
+  if(!letters.length){
+    nameHost.innerHTML = '<p class="empty">הקלד שם כדי לראות מועמדות לכל אות.</p>';
+    return;
+  }
+  var maxW = +elNMax.value || 0, limit = +elNLimit.value || 5;
+  nameHost.innerHTML = letters.map(function(c, idx){
+    var rows = query({ letter: c, maxW: maxW, sort: "len" });
+    var total = rows.length;
+    rows = rows.slice(0, limit);
+    var note = total
+      ? ("מוצגות " + rows.length + " מתוך " + total + " משניות עד " + maxW + " מילים")
+      : ("אין משנה עד " + maxW + " מילים הפותחת באות זו — נסה להגדיל את אורך מירבי");
+    return '<section class="group">'
+      + '<h2><span class="badge">' + c + '</span>משבצת ' + (idx + 1) + '</h2>'
+      + '<p class="note">' + note + '</p>'
+      + rows.map(function(r){ return card(r, ""); }).join("")
+      + '</section>';
+  }).join("");
+}
+
+var ntimer;
+elName.oninput = function(){ clearTimeout(ntimer); ntimer = setTimeout(runName, 160); };
+elNMax.onchange = elNLimit.onchange = runName;
+elNesh.onchange = runName;
+
+runBrowse();
+runName();
+})();
+</script>
+</body>
+</html>
