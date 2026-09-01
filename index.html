@@ -150,6 +150,8 @@ details.tune > summary:hover{color:var(--accent)}
 }
 .more:hover{border-color:var(--accent)}
 .hint{color:var(--dim); font-size:.85rem; margin:6px 0 0}
+.hint.words{margin-top:12px; line-height:1.85}
+.hint.words b{color:var(--ink); font-weight:600}
 
 footer{
   max-width:1000px; margin:0 auto; padding:26px 20px 50px; border-top:1px solid var(--line);
@@ -217,9 +219,14 @@ footer a{color:var(--accent)}
             </div>
             <div class="field" style="flex:1 1 auto">
               <label class="check"><input type="checkbox" id="n-standalone" checked>
-                רק משניות שעומדות בפני עצמן</label>
+                סנן משניות המשך</label>
             </div>
           </div>
+          <p class="hint words">
+            משנה שפותחת באחת מהמילים האלה היא בדרך כלל המשך של המשנה שלפניה
+            ואינה מובנת לבדה: <b id="n-words"></b>.
+            הבדיקה היא על מילת הפתיחה בלבד.
+          </p>
         </details>
       </div>
       <p class="hint">
@@ -289,9 +296,14 @@ footer a{color:var(--accent)}
             </div>
             <div class="field" style="flex:1 1 auto">
               <label class="check"><input type="checkbox" id="f-standalone">
-                רק משניות שעומדות בפני עצמן</label>
+                סנן משניות המשך</label>
             </div>
           </div>
+          <p class="hint words">
+            משנה שפותחת באחת מהמילים האלה היא בדרך כלל המשך של המשנה שלפניה
+            ואינה מובנת לבדה: <b id="f-words"></b>.
+            הבדיקה היא על מילת הפתיחה בלבד.
+          </p>
         </details>
       </div>
       <div class="field" style="margin-top:16px">
@@ -379,7 +391,7 @@ function card(row, needle){
   var t = T[row[L_TR]], tags = "";
   if(t[TR_TIER] === 1) tags += '<span class="tag t1">מוסר</span>';
   if(t[TR_TIER] === 4) tags += '<span class="tag t4">מסכת רגישה</span>';
-  if(row[L_FLAGS] & FLAG_CONT) tags += '<span class="tag">המשך הקודמת</span>';
+  if(row[L_FLAGS] & FLAG_CONT) tags += '<span class="tag">משנת המשך</span>';
   if(row[L_FLAGS] & FLAG_MEASURE) tags += '<span class="tag">מידות</span>';
   return '<article class="m">'
     + '<div class="m-head">'
@@ -646,6 +658,11 @@ elNTier.onchange = elNStand.onchange = function(){
   elNSmart.setAttribute("aria-pressed", elNTier.value === "2" && elNStand.checked);
   runName();
 };
+
+/* רשימת מילות ההמשך נגזרת מקובץ הנתונים — מקור יחיד משותף עם build_html.py */
+var CW = (window.MF_CONT_WORDS || []).map(function(w){ return "&rlm;" + esc(w); }).join(", ");
+document.getElementById("n-words").innerHTML = CW;
+document.getElementById("f-words").innerHTML = CW;
 
 runBrowse();
 runName();
